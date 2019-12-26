@@ -2,7 +2,7 @@
 // @name         V2EX favorates collection extractor
 // @namespace    https://github.com/cxumol/userscripts
 // @version      0.1
-// @description  lazy livid did not implement https://www.v2ex.com/t/95800
+// @description  lazy livid did not implement https://www.v2ex.com/t/95800 ; please read https://www.v2ex.com/t/632448 for instruction
 // @author       cxumol
 // @match        https://www.v2ex.com/my/topics*
 // @grant        GM_xmlhttpRequest
