@@ -1,0 +1,13 @@
+/* ==UserStyle==
+@name           SiliconFlow Playground tweak
+@namespace      https://github.com/
+@version        1.0
+@description    .
+@author         .
+==/UserStyle== */
+
+@-moz-document url("https://cloud.siliconflow.cn/playground/chat") {
+  div.flex-1:nth-child(1) > div:nth-child(1) > div:nth-child(2) {
+    display: none !important;
+  }
+}
