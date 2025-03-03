@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DeepSeek Chat to Telegraph
 // @namespace    https://greasyfork.org/users/428487-cxumol
-// @version      0.0.5
+// @version      0.0.6
 // @description  Add "Share" button to DeepSeek Chat to post your chat on Telegraph. 
 // @description:zh-CN  DeepSeek 官网一键分享当前对话, 发布到 telegra.ph
 // @author       cxumol
@@ -56,7 +56,7 @@
         messages.forEach(message => {
             const {role,content} = message; // role: system | assistant | user
             let text = `\`${role}\`: ${content}`;
-            if(role.toLowerCase()==="assistant"&&message.thinking_enabled&&message.thinking_content)text=`\`${role}\`: \n\n${message.thinking_content.split("\n\n").map(e=>"> "+e).join("\n> \n")}\n\n${content}`;
+            if(role.toLowerCase()==="assistant"&&message.thinking_enabled&&message.thinking_content)text=`\`${role}\`: \n\n${message.thinking_content.split("\n\n").map(e=>"> "+e).join("\n\n")}\n\n${content}`;
             tgphData = tgphData.concat(md2TgphNode(text));
         }); //console.log(tgphData);
         return JSON.stringify(tgphData);
