@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DeepSeek Chat to Telegraph
 // @namespace    https://greasyfork.org/users/428487-cxumol
-// @version      0.0.1
+// @version      0.0.2
 // @description  Add "Share" button to DeepSeek Chat to post your chat on Telegraph. 
 // @description:zh-CN  DeepSeek 官网一键分享当前对话, 发布到 telegra.ph
 // @author       cxumol
@@ -54,12 +54,12 @@
         messages.forEach(message => {
             const {role,content} = message; // role: system | assistant | user
             let text = `\`${role}\`: ${content}`;
-            if(role.toLowerCase()==="assistant"&&message.thinking_enabled&&message.thinking_content)text=`\`${role}\`: <blockquote>${message.thinking_content}<\blockquote>\n\n${content}`;
+            if(role.toLowerCase()==="assistant"&&message.thinking_enabled&&message.thinking_content)text=`\`${role}\`: <blockquote>${message.thinking_content}</blockquote>\n\n${content}`;
             tgphData = tgphData.concat(md2TgphNode(text));
         }); //console.log(tgphData);
         return JSON.stringify(tgphData);
     }
-    //var SUPPORTED_TGPH_TAGS = ["a","aside","b","blockquote","br","code","em","figcaption","figure","h3","h4","hr","i","iframe","img","li","ol","p","pre","s","strong","u","ul","video"];
+    var SUPPORTED_TGPH_TAGS = ["a","aside","b","blockquote","br","code","em","figcaption","figure","h3","h4","hr","i","iframe","img","li","ol","p","pre","s","strong","u","ul","video"];
     function md2TgphNode(c) {
         c=c.trim();
         var d=new DOMParser().parseFromString(marked.parse(c),"text/html");
@@ -74,7 +74,7 @@
         if(el.nodeType==Node.TEXT_NODE){var t=el.textContent;return el.parentElement?.tagName==="P"&&t?t.replace("\n"," "):t||null;}
         if(!(el instanceof Element))return null;
         var tg=el.tagName.toLowerCase();
-        //if(!SUPPORTED_TGPH_TAGS.includes(tg))console.log(tg);
+        if(!SUPPORTED_TGPH_TAGS.includes(tg)&&tg!=="body") console.log("domToTelegraphNode: unsupported tag: ",el.tagName,el.innerHTML);
         var n={tag:tg};
         if(tg==="code"&&el.parentElement?.tagName==="PRE")n.tag="pre";
         var h=el.getAttribute("href");if(h!=null)n.attrs={href:h};
