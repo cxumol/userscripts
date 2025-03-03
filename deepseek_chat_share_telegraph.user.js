@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         DeepSeek Chat to Telegraph
 // @namespace    https://greasyfork.org/users/428487-cxumol
-// @version      0.0.4
+// @version      0.0.5
 // @description  Add "Share" button to DeepSeek Chat to post your chat on Telegraph. 
 // @description:zh-CN  DeepSeek 官网一键分享当前对话, 发布到 telegra.ph
 // @author       cxumol
 // @match        https://*.deepseek.com/a/chat/s/*
 // @icon         data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAUCAMAAABPqWaPAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAEXRFWHRTb2Z0d2FyZQBTbmlwYXN0ZV0Xzt0AAAF3UExURU1r/k5r/k5s/k9s/k9t/lBt/lBu/lFu/lVx/lVy/lZy/ld0/lhz/lh0/lp2/lt3/lx3/l14/l55/l96/mB6/mB7/mJ9/mN9/miB/miC/mmB/mqD/muD/m6G/nGJ/nKK/nWM/nuR/n+U/oSZ/oWZ/ome/oqe/oue/o2g/o2h/o+h/o+i/pCi/pKk/pOl/pao/pip/pmq/pmr/p6v/qKx/qW0/qa1/qi2/qq4/qu5/qy5/q27/q+9/7G9/rG+/rTA/rXC/rbC/rnF/rrF/rvG/7zH/rzI/r3I/sXO/srS/svU/szU/szV/s3V/tDX/tHZ/tLZ/tPa/tPb/tTa/tXc/9jf/9ng/tzi/uLn/+Pn/uPn/+Po/+To/uTp/uTp/+Xp/ufr/+js/urt/uvu/uvu/+zv/u3w/+7w/u7w/+/y/vHz/vP1//T2//b3/vb4//f4/vf5//j5/vn6//r7//v7/vv8//z8//z9//39/v39//7+/v7+/////1hnCtYAAAEJSURBVBgZdcHVQgJRAEXRrYKJhZ3Y3d3dCnZ3d4sKnI937mC9sBaKBP362B+qTUyr9J4GZCAjeLL4GGzhW2lQFmT4wJHYut3vBFceZB5IQrbLYXB2aTWDcW0Uk3whIdt9ARA9pbOqcum2BPeTkPHRhG1btisXM0KGj7DMT9mWSAghowJSJ4uADtnuYRdZbuMg/W4pCaJGZatmAVlmsTQe1gOOQRlrzCBLNw431Hgx3HPXAb0wjxQK1lGoMv6klcABevDEQPzWezP/eQKoASP23N/OP5viCCjNh2lphB8xvRIruevSchZtkgYIyxiThGz+7CHpOYeUib7OniMZKGznRnrbO37VLxTJF42Gi4sQ++AKAAAAAElFTkSuQmCC
+// @grant        GM_info
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
@@ -17,6 +18,7 @@
 
 (function() {
     'use strict';
+    console.log(`UserScript "DeepSeek Chat to Telegraph" loaded, version: ${GM_info.script.version}`);
     const _selectors={"titleBar":".f8d1e4c0"}; // Need update if chat.deepseek.com update; no gentle way to locate the title bar, pls lemme know if u got better idea.
 
     // Function to create the overlay for displaying the Telegraph URL
@@ -54,7 +56,7 @@
         messages.forEach(message => {
             const {role,content} = message; // role: system | assistant | user
             let text = `\`${role}\`: ${content}`;
-            if(role.toLowerCase()==="assistant"&&message.thinking_enabled&&message.thinking_content)text=`\`${role}\`: \n\n${message.thinking_content.split("\n\n").map(e=>"> "+e).join("\n\n")}\n\n${content}`;
+            if(role.toLowerCase()==="assistant"&&message.thinking_enabled&&message.thinking_content)text=`\`${role}\`: \n\n${message.thinking_content.split("\n\n").map(e=>"> "+e).join("\n> \n")}\n\n${content}`;
             tgphData = tgphData.concat(md2TgphNode(text));
         }); //console.log(tgphData);
         return JSON.stringify(tgphData);
