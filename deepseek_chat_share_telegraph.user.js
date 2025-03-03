@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DeepSeek Chat to Telegraph
 // @namespace    https://greasyfork.org/users/428487-cxumol
-// @version      0.0.2
+// @version      0.0.3
 // @description  Add "Share" button to DeepSeek Chat to post your chat on Telegraph. 
 // @description:zh-CN  DeepSeek 官网一键分享当前对话, 发布到 telegra.ph
 // @author       cxumol
@@ -99,7 +99,7 @@
     async function uploadToTelegraph(title,content){
         var telegraphAccessToken=await getTgphToken();
         try{const r=await GM.xmlHttpRequest({method:'POST',url:'https://api.telegra.ph/createPage',headers:{'Content-Type':'application/json'},
-                                             data:JSON.stringify({access_token:telegraphAccessToken,title:title,content:content,return_content:true}),responseType:'json',
+                                             data:JSON.stringify({access_token:telegraphAccessToken,title:title,content:content,return_content:true,author_name:"DeepSeek Chat"}),responseType:'json',
                                              onerror:(e)=>{throw new Error(`Telegraph API request failed: ${e.status}`)}});
             if(r.status>299||r.status<200)throw new Error(`Telegraph API error: ${r.status}`)
             const data=r.response; if(!data.ok)throw new Error(`Telegraph API error: ${data.error}`);
