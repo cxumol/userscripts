@@ -10,7 +10,7 @@
 // @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
 // @connect      api.telegra.ph
-// @require      https://cdn.jsdelivr.net/npm/marked/marked.min.js
+// @require      https://update.greasyfork.org/scripts/506699/1534808/marked.js
 // @license      MIT
 // ==/UserScript==
 
