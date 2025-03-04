@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DeepSeek Chat to Telegraph
 // @namespace    https://greasyfork.org/users/428487-cxumol
-// @version      0.0.6
+// @version      0.0.7
 // @description  Add "Share" button to DeepSeek Chat to post your chat on Telegraph. 
 // @description:zh-CN  DeepSeek 官网一键分享当前对话, 发布到 telegra.ph
 // @author       cxumol
@@ -24,7 +24,7 @@
     // Function to create the overlay for displaying the Telegraph URL
     function showShareOverlay(url) {
         var overlay = document.createElement("div");
-        var $=(q)=>overlay.querySelector(q);
+        var $=q=>overlay.querySelector(q);
         overlay.style.cssText = `
             position: fixed;
             top: 0;
@@ -43,11 +43,13 @@
                 <p><a href="${url}" target="_blank">${url}</a></p>
                 <button class="copy-button" style="margin-right:10px;">Copy URL</button>
                 <button class="close-button">Close</button>
+                <button class="delete-button" style="margin-left:10px;color:maroon;">Delete</button>
             </div>
         `;
         document.body.appendChild(overlay);
         $(".copy-button").onclick=()=>navigator.clipboard.writeText(url).then(()=>alert("URL copied!"));
         $(".close-button").onclick=()=>overlay.remove();
+        $(".delete-button").onclick=()=>deleteTelegraph(url).then(()=>alert(`${url} is deleted!\nClick "Share" to share it again.`));
     }
 
     // Convert DeepSeek chat messages to Telegraph content format.
@@ -108,12 +110,16 @@
             return `https://telegra.ph/${data.result.path}`;
         }catch(e){console.error("Error uploading to Telegraph:",e);throw e}
     }
+    function deleteTelegraph(postUrl){
+        var telegraphAccessToken=GM_getValue('tgphToken'); if(!telegraphAccessToken)throw new Error("telegraphAccessToken NOT FOUND, cannot delete the post!");
+        return fetch(`https://api.telegra.ph/editPage/${postUrl.split('/').pop()}?access_token=${telegraphAccessToken}&title=Removed&author_name=&content=[{"tag":"p","children":["removed by author"]}]`
+                    ).then(r=>r.json()).then(j=>{if(!j.ok)throw new Error(j.error);return j;}).catch(e=>{console.error("Error deleting Telegraph:",e);throw e;});
+    }
 
     // Fetch chat history from DeepSeek API
     async function fetchChatHistory() {
         const token = localStorage.getItem("userToken");
         if (!token) throw new Error("User token not found. Please make sure you are logged in.");
-
         const parsedToken = JSON.parse(token);
 
         // 1. Get current chat session ID.
