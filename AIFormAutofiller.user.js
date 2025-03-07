@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         AI Form Autofiller
+// @name         Job Application Autofiller
 // @namespace    cxumol
 // @version      1.1
-// @description  General purpose form autofiller 通用型一键智能填表, 需要先在脚本设置选项单中预设填表内容和 LLM API
+// @description  Autofill job application forms with user-controlled activation
 // @match        *://*/*
 // @grant        GM_registerMenuCommand
 // @grant        GM_getValue
@@ -16,11 +16,12 @@ const $ = document.querySelector.bind(document), $$ = document.querySelectorAll.
 
 // Compact API call function
 const oai = async (api, msg, temp = 0.6) => {
-    var res = await fetch(api.base + '/chat/completions', { method: 'POST', headers: { 'Authorization': 'Bearer ' + api.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ "model": api.model, "messages": [{ "role": "system", "content": msg.sys }, { "role": "user", "content": msg.user }], temperature: temp }) });
+    var res=await fetch(api.base+"/chat/completions",{method:"POST",headers:{Authorization:"Bearer "+api.key,"Content-Type":"application/json"},body:JSON.stringify({model:api.model,messages:[{role:"system",content:msg.sys},{role:"user",content:msg.user}],temperature:temp})});
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     var j = await res.text();
     try { return JSON.parse(j).choices?.[0]?.message?.content.trim() || (() => { throw new Error("No content") })(); } catch (e) { console.error("Error parsing JSON:", j); throw e; }
 };
+var btwn=(s,b,e)=>{const i=s.lastindexOf(b.trim()),j=s.lastIndexOf(e.trim());if(i===-1||j===-1||i>=j)throw new Error(`btwn: not found`);return s.substring(i,j+e.length)};
 
 // Flatten nested objects
 const flattenObject = (obj, prefix = '') => Object.keys(obj).reduce((acc, k) => {
@@ -47,7 +48,7 @@ GM_registerMenuCommand('⚙ Edit User Data', () => {
 
 // Form injection
 const addAutoFillButton = form => {
-    if (form.querySelectorAll('input,textarea,select').length < 5) return; // Requirement 3: Don't add to small forms
+    if (form.querySelectorAll('input,textarea,select').length < 10) return; // Requirement 3: Don't add to small forms
     const btn = document.createElement('button');
     btn.textContent = '🚀 Autofill Form';
     btn.style = 'background:#4CAF50;color:white;padding:8px;border:0;border-radius:4px;margin:10px 0;cursor:pointer;';
@@ -74,7 +75,7 @@ const autofill = async form => {
 
     // Initial Matching
     form.querySelectorAll('input,textarea,select').forEach(el => {
-        if (el.disabled || ['hidden'].includes(el.type)) return;
+        if (el.disabled || ['hidden'].includes(el.type) || el.value) return;
         const match = findBestMatch([el.name, el.id, el.placeholder, ...Array.from(document.querySelectorAll(`label[for="${el.id}"]`)).map(l => l.textContent)].filter(Boolean).map(normalize), flatUserData);
         if (!match) return;
 
@@ -84,10 +85,11 @@ const autofill = async form => {
             el.value = Array.isArray(flatUserData[match]) ? flatUserData[match].join(', ') : flatUserData[match];
         }
         matchedKeys.add(match);
+        console.log(match,el.value);
     });
 
     // LLM Matching
-    const unmatchedFormKeys = Array.from((form || document).querySelectorAll('input,textarea,select')).filter(el => !el.disabled && !['radio', 'checkbox', 'hidden'].includes(el.type) && !el.value).map(el => ({ raw: el.name, norm: normalize(el.name) }));
+    const unmatchedFormKeys = Array.from(form.querySelectorAll('input,textarea,select')).filter(el => !el.disabled && !['radio', 'checkbox', 'hidden'].includes(el.type) && !el.value).map(el => ({ raw: el.name, norm: normalize(el.name) }));
     const privacyRegex = /name|email|phone|address|tel|mobile/i;
     const filteredUserData = Object.fromEntries(Object.entries(flatUserData).filter(([key]) => !matchedKeys.has(key) && !privacyRegex.test(key)));
 
@@ -95,14 +97,13 @@ const autofill = async form => {
         const sysPrompt = `You are a form-filling assistant. Match user data to form fields. Return a JSON object where keys are form field names and values are the corresponding user data. Only include matched pairs. Do not make up information. Output must be valid JSON. Example: {"formKey1":"matcheddata1","formKey2":"matcheddata2"}`;
         const userPrompt = `Form Fields: ${JSON.stringify(unmatchedFormKeys.map(k => k.raw))}\nUser Data: ${JSON.stringify(filteredUserData)}`;
         let llmResult = null;
-        for (let i = 0; i < MAX_RETRY; i++) {
-            try { llmResult = await oai(apiConfig, { sys: sysPrompt, user: userPrompt }); llmResult = JSON.parse(llmResult); break; } catch (e) { console.error(`LLM call failed (attempt ${i + 1}/${MAX_RETRY}):`, e); }
-        }
-        if (llmResult) form.querySelectorAll('input,textarea,select').forEach(el => { if (llmResult[el.name]) el.value = llmResult[el.name]; });
+        for (let i=0;i<MAX_RETRY;i++)try{llmResult=JSON.parse(btwn(await oai(apiConfig,{sys:sysPrompt,user:userPrompt}),'{','}'));break;}catch(l){console.error(`LLM call failed (attempt ${i+1}/${MAX_RETRY}):`,l)}
+        console.log(llmResult);
+        if(llmResult)form.querySelectorAll('input,textarea,select').forEach(el => { if (llmResult[el.name]) el.value = llmResult[el.name]; });
     }
 };
 
 // Initialize
 $$('form').forEach(addAutoFillButton);
-new MutationObserver(muts => muts.forEach(m => m.addedNodes.forEach(n => n.tagName === 'FORM' && n.querySelectorAll('input,textarea,select').length >= 5 && addAutoFillButton(n)))).observe(document.body, { childList: true, subtree: true }); // Requirement 3: Check in observer too
+new MutationObserver(muts => muts.forEach(m => m.addedNodes.forEach(n => n.tagName === 'FORM' && n.querySelectorAll('input,textarea,select').length >= 10 && addAutoFillButton(n)))).observe(document.body, { childList: true, subtree: true }); // Requirement 3: Check in observer too
 })();
