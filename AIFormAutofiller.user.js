@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Job Application Autofiller
 // @namespace    cxumol
-// @version      1.1
+// @version      0.0.3
 // @description  Autofill job application forms with user-controlled activation
 // @match        *://*/*
 // @grant        GM_registerMenuCommand
@@ -21,7 +21,7 @@ const oai = async (api, msg, temp = 0.6) => {
     var j = await res.text();
     try { return JSON.parse(j).choices?.[0]?.message?.content.trim() || (() => { throw new Error("No content") })(); } catch (e) { console.error("Error parsing JSON:", j); throw e; }
 };
-var btwn=(s,b,e)=>{const i=s.lastindexOf(b.trim()),j=s.lastIndexOf(e.trim());if(i===-1||j===-1||i>=j)throw new Error(`btwn: not found`);return s.substring(i,j+e.length)};
+var btwn=(s,b,e)=>{const i=s.lastIndexOf(b.trim()),j=s.lastIndexOf(e.trim());if(i===-1||j===-1||i>=j)throw new Error(`btwn: not found`);return s.substring(i,j+e.length)};
 
 // Flatten nested objects
 const flattenObject = (obj, prefix = '') => Object.keys(obj).reduce((acc, k) => {
@@ -58,25 +58,37 @@ const addAutoFillButton = form => {
 
 // Matching logic
 const normalize = str => str.toLowerCase().replace(/[\s_-]+/g, '');
-const findBestMatch = (formKeys, userData) => {
-    const userKeys = Object.keys(userData).map(k => ({ raw: k, norm: normalize(k) }));
-    for (const key of formKeys) if (userData[key]) return key; // Exact match
-    return formKeys.reduce((a, k) => {
-        const res = fuzzysort.go(k, userKeys, { key: 'norm', threshold: -Infinity })[0];
-        return res && res.score > a.score ? res : a;
-    }, { score: -1 }).obj?.raw;
+const findBestMatch = (formKeys, _userKeys) => {
+    const userKeys = _userKeys.map(k => ({ raw: k, norm: normalize(k) }));
+    // Step 1: Check for exact match
+    for (const key of formKeys) if (_userKeys.includes(key)) return key; // Exact match
+    // Step 2: Try bidirectional fuzzy matching for better results
+    let bestMatch = { score: -Infinity, key: null };
+    // For each form key, try both matching directions and keep track of best match
+    for (const formKey of formKeys) {
+        // Direction 1: Form key as query (original approach)
+        const res1 = fuzzysort.go(formKey, userKeys, { key: 'norm', threshold: -Infinity })[0];
+        if (res1 && res1.score > bestMatch.score) bestMatch = { score: res1.score, key: res1.obj.raw };
+        // Direction 2: User keys as queries - often better for shorter user keys matching longer form keys
+        for (const userKey of userKeys) {
+            const res2 = fuzzysort.single(userKey.norm, formKey);
+            if (res2 && res2.score > bestMatch.score) bestMatch = { score: res2.score, key: userKey.raw };
+        }
+    }
+    console.log(formKeys, bestMatch);
+    return bestMatch.key; // Return the raw key from userData that best matches
 };
 
 // Core functionality
 const autofill = async form => {
     const userData = GM_getValue('userData', {}), apiConfig = GM_getValue('apiConfig', { "base": "https://api.example/v1", "key": "sk-", "model": "gpt" }), flatUserData = flattenObject(userData);
-    const matchedKeys = new Set();
-    console.log(flattenObject);
+    const matchedKeys = new Set(), userKeys = Object.keys(userData);
+    console.log(flatUserData);
 
     // Initial Matching
     form.querySelectorAll('input,textarea,select').forEach(el => {
         if (el.disabled || ['hidden'].includes(el.type) || el.value) return;
-        const match = findBestMatch([el.name, el.id, el.placeholder, ...Array.from(document.querySelectorAll(`label[for="${el.id}"]`)).map(l => l.textContent)].filter(Boolean).map(normalize), flatUserData);
+        const match = findBestMatch([el.name, el.id, el.placeholder, ...Array.from(document.querySelectorAll(`label[for="${el.id}"]`)).map(l => l.textContent)].filter(Boolean).map(normalize), userKeys);
         if (!match) return;
 
         if (el.type === 'radio' || el.type === 'checkbox') {
@@ -94,7 +106,7 @@ const autofill = async form => {
     const filteredUserData = Object.fromEntries(Object.entries(flatUserData).filter(([key]) => !matchedKeys.has(key) && !privacyRegex.test(key)));
 
     if (unmatchedFormKeys.length > 0 && Object.keys(filteredUserData).length > 0) {
-        const sysPrompt = `You are a form-filling assistant. Match user data to form fields. Return a JSON object where keys are form field names and values are the corresponding user data. Only include matched pairs. Do not make up information. Output must be valid JSON. Example: {"formKey1":"matcheddata1","formKey2":"matcheddata2"}`;
+        const sysPrompt = `You are a form-filling assistant. Match user data to form fields. Return a JSON object where keys are form field names and values are the corresponding user data. Only include matched pairs; Ignore informations not found. Do not make up information. Output must be valid JSON. Example: {"formKey1":"matcheddata1","formKey2":"matcheddata2"}`;
         const userPrompt = `Form Fields: ${JSON.stringify(unmatchedFormKeys.map(k => k.raw))}\nUser Data: ${JSON.stringify(filteredUserData)}`;
         let llmResult = null;
         for (let i=0;i<MAX_RETRY;i++)try{llmResult=JSON.parse(btwn(await oai(apiConfig,{sys:sysPrompt,user:userPrompt}),'{','}'));break;}catch(l){console.error(`LLM call failed (attempt ${i+1}/${MAX_RETRY}):`,l)}
