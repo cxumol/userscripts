@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DeepSeek Chat to Telegraph
 // @namespace    https://greasyfork.org/users/428487-cxumol
-// @version      0.0.7
+// @version      0.0.8
 // @description  Add "Share" button to DeepSeek Chat to post your chat on Telegraph. 
 // @description:zh-CN  DeepSeek 官网一键分享当前对话, 发布到 telegra.ph
 // @author       cxumol
@@ -20,7 +20,7 @@
     'use strict';
     console.log(`UserScript "DeepSeek Chat to Telegraph" loaded, version: ${GM_info.script.version}`);
     const _selectors={"titleBar":".f8d1e4c0"}; // Need update if chat.deepseek.com update; no gentle way to locate the title bar, pls lemme know if u got better idea.
-
+    const _ds_headers={"x-client-platform":"web","x-client-version":"1.2.0-sse-hint","x-client-locale":"zh_CN","x-app-version":"20241129.1"}; // Alternative way bypassing 403 is to hook XHR https://greasyfork.org/scripts/523474
     // Function to create the overlay for displaying the Telegraph URL
     function showShareOverlay(url) {
         var overlay = document.createElement("div");
@@ -127,7 +127,7 @@
         if(sessionId.length<30)throw new Error(`Session ID not found from address bar, got: ${sessionId}`);
         // 2. Fetch messages using the session ID.
         const messagesResponse = await fetch(`https://chat.deepseek.com/api/v0/chat/history_messages?chat_session_id=${sessionId}`,
-                                             {credentials: "include",headers:{"Authorization":`Bearer ${parsedToken.value}`}});
+                                             {credentials: "include",headers:{"Authorization":`Bearer ${parsedToken.value}`,..._ds_headers}});
         if (!messagesResponse.ok) throw new Error(`Failed to fetch chat messages: ${messagesResponse.status}`);
         const messagesData = await messagesResponse.json();
         return { title: messagesData.data.biz_data.chat_session.title,
@@ -172,3 +172,4 @@
     // also call addShareButton for first time run
     addShareButton();
 })();
+
