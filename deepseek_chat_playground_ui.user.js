@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DeepSeek Playground UI
 // @namespace    http://tampermonkey.net/
-// @version      1.5.2
+// @version      1.5.3
 // @description  全屏双栏界面：左栏输入区（恒定编辑状态），右栏输出区。Enter 换行，Ctrl+Enter 发送。 
 // @description:zh-CN 全屏双栏界面：左栏输入区（恒定编辑状态），右栏输出区。Enter 换行，Ctrl+Enter 发送。 
 // @description:zh-TW 全螢幕雙欄界面：左欄輸入區（恆定編輯狀態），右欄輸出區。Enter 換行，Ctrl+Enter 傳送。 
@@ -9,7 +9,7 @@
 // @match        https://chat.deepseek.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=deepseek.com
 // @grant        GM_addStyle
-// @run-at       context-menu
+// @run-at       document-idle
 // @license MIT
 // ==/UserScript==
 
