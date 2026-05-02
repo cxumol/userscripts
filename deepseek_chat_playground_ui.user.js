@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         DeepSeek Playground UI
 // @namespace    http://tampermonkey.net/
-// @version      1.5.1
-// @description  全屏双栏界面：左栏输入区（恒定编辑状态），右栏输出区。Enter 换行，Ctrl+Enter 发送。 ![screen](https://greasyfork.org/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6MjkxNjg4LCJwdXIiOiJibG9iX2lkIn19--ead4ff7d7a5b4606f81195fc97676347ec231437/deepseek-playground.jpg)
-// @description:zh-CN 全屏双栏界面：左栏输入区（恒定编辑状态），右栏输出区。Enter 换行，Ctrl+Enter 发送。 ![screen](https://greasyfork.org/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6MjkxNjg4LCJwdXIiOiJibG9iX2lkIn19--ead4ff7d7a5b4606f81195fc97676347ec231437/deepseek-playground.jpg)
-// @description:zh-TW 全螢幕雙欄界面：左欄輸入區（恆定編輯狀態），右欄輸出區。Enter 換行，Ctrl+Enter 傳送。 ![screen](https://greasyfork.org/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6MjkxNjg4LCJwdXIiOiJibG9iX2lkIn19--ead4ff7d7a5b4606f81195fc97676347ec231437/deepseek-playground.jpg)
-// @description:en Fullscreen dual-panel UI: left panel for input (always editable), right panel for output. Enter for newline, Ctrl+Enter to send. ![screen](https://greasyfork.org/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6MjkxNjg4LCJwdXIiOiJibG9iX2lkIn19--ead4ff7d7a5b4606f81195fc97676347ec231437/deepseek-playground.jpg)
+// @version      1.5.2
+// @description  全屏双栏界面：左栏输入区（恒定编辑状态），右栏输出区。Enter 换行，Ctrl+Enter 发送。 
+// @description:zh-CN 全屏双栏界面：左栏输入区（恒定编辑状态），右栏输出区。Enter 换行，Ctrl+Enter 发送。 
+// @description:zh-TW 全螢幕雙欄界面：左欄輸入區（恆定編輯狀態），右欄輸出區。Enter 換行，Ctrl+Enter 傳送。 
+// @description:en Fullscreen dual-panel UI: left panel for input (always editable), right panel for output. Enter for newline, Ctrl+Enter to send. 
 // @match        https://chat.deepseek.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=deepseek.com
 // @grant        GM_addStyle
