@@ -112,7 +112,7 @@
 
         body.playground-mode [data-virtual-list-item-key]:nth-of-type(1) .ds-textarea {
             flex: 1 1 auto !important;
-            height: 100% !important;
+            max-height: 100% !important;
             display: flex !important;
             flex-direction: column !important;
             max-width: none !important;
